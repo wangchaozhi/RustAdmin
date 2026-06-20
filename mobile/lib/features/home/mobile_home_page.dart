@@ -12,7 +12,10 @@ class MobileHomePage extends StatelessWidget {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-                child: _HomeHeader(onLogout: () => Navigator.pushReplacementNamed(context, '/login')),
+                child: _HomeHeader(
+                  onLogout: () =>
+                      Navigator.pushReplacementNamed(context, '/login'),
+                ),
               ),
             ),
             const SliverPadding(
@@ -27,10 +30,26 @@ class MobileHomePage extends StatelessWidget {
                 crossAxisSpacing: 12,
                 childAspectRatio: 1.28,
                 children: [
-                  _MetricCard(label: '今日访问', value: '1,284', icon: Icons.trending_up_rounded),
-                  _MetricCard(label: '待处理', value: '18', icon: Icons.task_alt_rounded),
-                  _MetricCard(label: '在线用户', value: '326', icon: Icons.people_alt_rounded),
-                  _MetricCard(label: '系统状态', value: '稳定', icon: Icons.verified_rounded),
+                  _MetricCard(
+                    label: '今日访问',
+                    value: '1,284',
+                    icon: Icons.trending_up_rounded,
+                  ),
+                  _MetricCard(
+                    label: '待处理',
+                    value: '18',
+                    icon: Icons.task_alt_rounded,
+                  ),
+                  _MetricCard(
+                    label: '在线用户',
+                    value: '326',
+                    icon: Icons.people_alt_rounded,
+                  ),
+                  _MetricCard(
+                    label: '系统状态',
+                    value: '稳定',
+                    icon: Icons.verified_rounded,
+                  ),
                 ],
               ),
             ),
@@ -70,7 +89,9 @@ class _HomeHeader extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 '欢迎回来，今天也稳稳推进',
-                style: textTheme.bodyMedium?.copyWith(color: const Color(0xFF6B7280)),
+                style: textTheme.bodyMedium?.copyWith(
+                  color: const Color(0xFF6B7280),
+                ),
               ),
             ],
           ),
@@ -114,7 +135,11 @@ class _StatusPanel extends StatelessWidget {
           SizedBox(height: 18),
           Text(
             '系统运行良好',
-            style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800),
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+            ),
           ),
           SizedBox(height: 8),
           Text(
@@ -191,10 +216,17 @@ class _QuickActions extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         _ActionTile(
+          onTap: () => Navigator.pushNamed(context, '/converter/video-audio'),
+          icon: Icons.audio_file_rounded,
+          title: '视频转音频',
+          subtitle: '提取视频音轨并导出音频',
+          color: const Color(0xFF2563EB),
+        ),
+        _ActionTile(
           icon: Icons.person_add_alt_1_rounded,
           title: '用户审核',
           subtitle: '查看新用户资料与状态',
-          color: const Color(0xFF2563EB),
+          color: const Color(0xFF0F766E),
         ),
         _ActionTile(
           icon: Icons.notifications_active_rounded,
@@ -215,12 +247,14 @@ class _QuickActions extends StatelessWidget {
 
 class _ActionTile extends StatelessWidget {
   const _ActionTile({
+    this.onTap,
     required this.icon,
     required this.title,
     required this.subtitle,
     required this.color,
   });
 
+  final VoidCallback? onTap;
   final IconData icon;
   final String title;
   final String subtitle;
@@ -228,44 +262,59 @@ class _ActionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
             ),
-            child: Icon(icon, color: color),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Color(0xFF111827),
-                    fontWeight: FontWeight.w700,
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(icon, color: color),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          color: Color(0xFF111827),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(color: Color(0xFF6B7280)),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 3),
-                Text(subtitle, style: const TextStyle(color: Color(0xFF6B7280))),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: Color(0xFF9CA3AF),
+                ),
               ],
             ),
           ),
-          const Icon(Icons.chevron_right_rounded, color: Color(0xFF9CA3AF)),
-        ],
+        ),
       ),
     );
   }

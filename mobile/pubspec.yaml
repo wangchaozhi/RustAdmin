@@ -13,6 +13,10 @@ dependencies:
   http: ^1.2.2
   shared_preferences: ^2.3.3
   forui: ^0.21.3
+  file_picker: ^11.0.2
+  ffmpeg_kit_flutter_new: ^4.2.1
+  path: ^1.9.1
+  path_provider: ^2.1.6
 
 dev_dependencies:
   flutter_test:

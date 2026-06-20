@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 
 import '../features/auth/mobile_login_page.dart';
+import '../features/converter/video_audio_converter_page.dart';
 import '../features/home/mobile_home_page.dart';
 
 class MobileApp extends StatelessWidget {
@@ -28,6 +29,7 @@ class MobileApp extends StatelessWidget {
       routes: {
         '/login': (_) => const MobileLoginPage(),
         '/home': (_) => const MobileHomePage(),
+        '/converter/video-audio': (_) => const VideoAudioConverterPage(),
       },
     );
   }
