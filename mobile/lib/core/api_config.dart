@@ -31,6 +31,9 @@ class ApiConfig {
 
   /// 平台默认地址：Android 模拟器走 10.0.2.2，其余走 127.0.0.1。
   static String get platformDefault {
+    if (kIsWeb) {
+      return '';
+    }
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       return 'http://10.0.2.2:8080';
     }

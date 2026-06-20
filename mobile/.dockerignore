@@ -1,0 +1,9 @@
+.dart_tool/
+build/
+.idea/
+.git/
+android/app/build/
+ios/Pods/
+macos/Pods/
+linux/build/
+windows/build/
