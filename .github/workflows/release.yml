@@ -20,16 +20,37 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Linux 多架构:用 cross(Docker)交叉编译,处理 ring + bundled sqlite 的 C 依赖
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
+            cross: true
             bin: admin-backend
             asset: admin-backend-linux-x86_64
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            cross: true
+            bin: admin-backend
+            asset: admin-backend-linux-aarch64
+          # musl 静态版,适合塞进 scratch/alpine 容器
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            cross: true
+            bin: admin-backend
+            asset: admin-backend-linux-x86_64-musl
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            cross: true
+            bin: admin-backend
+            asset: admin-backend-linux-aarch64-musl
+          # Windows / macOS 无法在 Linux 上交叉编译,保留原生 runner
           - os: windows-latest
             target: x86_64-pc-windows-msvc
+            cross: false
             bin: admin-backend.exe
             asset: admin-backend-windows-x86_64.exe
           - os: macos-latest
             target: aarch64-apple-darwin
+            cross: false
             bin: admin-backend
             asset: admin-backend-macos-aarch64
     defaults:
@@ -48,11 +69,19 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: backend
+          key: ${{ matrix.target }}
+
+      - name: Install cross
+        if: matrix.cross
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cross
 
       - name: Build (记录日志)
         run: |
           set -o pipefail
-          cargo build --release --target ${{ matrix.target }} 2>&1 | tee "${{ matrix.asset }}.log"
+          TOOL=${{ matrix.cross && 'cross' || 'cargo' }}
+          "$TOOL" build --release --target ${{ matrix.target }} 2>&1 | tee "${{ matrix.asset }}.log"
 
       - name: Package binary
         run: |
