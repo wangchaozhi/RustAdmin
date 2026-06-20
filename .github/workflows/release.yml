@@ -1,0 +1,143 @@
+name: Release
+
+# 推送 v* 标签时自动构建并发布 Release 资产
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  # ---------- 后端:多平台二进制 ----------
+  backend:
+    name: backend (${{ matrix.asset }})
+    runs-on: ${{ matrix.os }}
+    # 允许个别平台失败而不拖垮其它平台/整体流程
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            bin: admin-backend
+            asset: admin-backend-linux-x86_64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            bin: admin-backend.exe
+            asset: admin-backend-windows-x86_64.exe
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            bin: admin-backend
+            asset: admin-backend-macos-aarch64
+    defaults:
+      run:
+        shell: bash
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: backend
+
+      - name: Build (记录日志)
+        run: |
+          set -o pipefail
+          cargo build --release --target ${{ matrix.target }} 2>&1 | tee "${{ matrix.asset }}.log"
+
+      - name: Package binary
+        run: |
+          mkdir -p dist
+          cp "target/${{ matrix.target }}/release/${{ matrix.bin }}" "dist/${{ matrix.asset }}"
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: backend/dist/${{ matrix.asset }}
+          if-no-files-found: warn
+
+      # 即使构建失败也上传日志,便于排查
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}-log
+          path: backend/${{ matrix.asset }}.log
+          if-no-files-found: warn
+
+  # ---------- 前端:静态构建产物 ----------
+  frontend:
+    name: frontend
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        shell: bash
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build (记录日志)
+        run: |
+          set -o pipefail
+          { npm ci && npm run build; } 2>&1 | tee frontend-build.log
+
+      - name: Package dist
+        run: zip -r frontend-dist.zip dist
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/frontend-dist.zip
+          if-no-files-found: warn
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build-log
+          path: frontend/frontend-build.log
+          if-no-files-found: warn
+
+  # ---------- 汇总并发布 Release ----------
+  release:
+    name: Publish release
+    needs: [backend, frontend]
+    if: always() # 即便部分构建失败,也发布已成功的资产与全部日志
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          path: assets
+          merge-multiple: true
+
+      - name: List collected assets
+        run: ls -lR assets || true
+
+      - name: Publish to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          # 二进制、前端产物与所有 .log 一并作为 Release 资产;缺失文件不报错
+          files: assets/**/*
+          fail_on_unmatched_files: false
+          generate_release_notes: true
