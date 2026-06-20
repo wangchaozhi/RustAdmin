@@ -39,6 +39,31 @@ pub async fn store(
     Ok(id)
 }
 
+pub async fn store_mobile(
+    state: &AppState,
+    user_id: &str,
+    token_hash: &str,
+    ip: &str,
+    user_agent: &str,
+) -> ApiResult<String> {
+    let id = Uuid::new_v4().to_string();
+    let expires = (Utc::now() + Duration::days(state.config.refresh_ttl_days)).to_rfc3339();
+    sqlx::query(
+        "INSERT INTO mobile_refresh_tokens (id, user_id, token_hash, expires_at, created_at, ip, user_agent)
+         VALUES (?, ?, ?, ?, ?, ?, ?)",
+    )
+    .bind(&id)
+    .bind(user_id)
+    .bind(token_hash)
+    .bind(expires)
+    .bind(now_iso())
+    .bind(ip)
+    .bind(user_agent)
+    .execute(&state.db)
+    .await?;
+    Ok(id)
+}
+
 /// 校验并旋转(删除旧的)refresh token,返回 user_id
 pub async fn consume(state: &AppState, token_hash: &str) -> ApiResult<String> {
     let row: Option<(String, String)> = sqlx::query_as(

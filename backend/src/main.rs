@@ -21,14 +21,18 @@ use crate::{config::Config, state::AppState};
 async fn main() -> anyhow_main::Result<()> {
     dotenvy::dotenv().ok();
     tracing_subscriber::registry()
-        .with(tracing_subscriber::EnvFilter::try_from_default_env()
-            .unwrap_or_else(|_| "admin_backend=debug,tower_http=info".into()))
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "admin_backend=debug,tower_http=info".into()),
+        )
         .with(tracing_subscriber::fmt::layer())
         .init();
 
     let config = Config::from_env();
 
-    let opts: SqliteConnectOptions = config.database_url.parse::<SqliteConnectOptions>()?
+    let opts: SqliteConnectOptions = config
+        .database_url
+        .parse::<SqliteConnectOptions>()?
         .create_if_missing(true)
         .foreign_keys(true);
     let pool = SqlitePoolOptions::new()
@@ -40,6 +44,7 @@ async fn main() -> anyhow_main::Result<()> {
 
     let state = AppState::new(pool, config.clone());
     repo::users::seed_admin(&state).await?;
+    repo::mobile_users::seed_mobile_user(&state).await?;
 
     let cors = CorsLayer::new()
         .allow_origin(config.frontend_origin.parse::<HeaderValue>()?)
@@ -53,7 +58,11 @@ async fn main() -> anyhow_main::Result<()> {
     let addr: SocketAddr = format!("0.0.0.0:{}", config.port).parse()?;
     tracing::info!("listening on http://{addr}");
     let listener = tokio::net::TcpListener::bind(addr).await?;
-    axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>()).await?;
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .await?;
     Ok(())
 }
 

@@ -2,6 +2,7 @@ mod announce_routes;
 mod auth_routes;
 mod export_routes;
 mod misc_routes;
+mod mobile_routes;
 mod role_routes;
 mod user_routes;
 
@@ -13,7 +14,8 @@ pub fn router(state: AppState) -> Router {
     let public = Router::new()
         .route("/api/health", get(misc_routes::health))
         .route("/api/auth/login", post(auth_routes::login))
-        .route("/api/auth/refresh", post(auth_routes::refresh));
+        .route("/api/auth/refresh", post(auth_routes::refresh))
+        .route("/api/mobile/login", post(mobile_routes::login));
 
     let protected = Router::new()
         .route("/api/auth/me", get(auth_routes::me))

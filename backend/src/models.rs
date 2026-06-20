@@ -16,6 +16,19 @@ pub struct User {
     pub last_login_at: Option<String>,
 }
 
+#[derive(Debug, Clone, sqlx::FromRow, Serialize)]
+pub struct MobileUser {
+    pub id: String,
+    pub username: String,
+    #[serde(skip_serializing)]
+    pub password_hash: String,
+    pub display_name: String,
+    pub status: String,
+    pub created_at: String,
+    pub updated_at: String,
+    pub last_login_at: Option<String>,
+}
+
 #[derive(Debug, sqlx::FromRow, Serialize)]
 pub struct Role {
     pub name: String,
@@ -33,7 +46,11 @@ pub struct RoleOut {
 impl From<Role> for RoleOut {
     fn from(r: Role) -> Self {
         let permissions = serde_json::from_str(&r.permissions).unwrap_or_default();
-        Self { name: r.name, description: r.description, permissions }
+        Self {
+            name: r.name,
+            description: r.description,
+            permissions,
+        }
     }
 }
 

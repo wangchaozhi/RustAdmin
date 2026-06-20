@@ -26,6 +26,15 @@ pub struct Claims {
     pub exp: i64,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct MobileClaims {
+    pub sub: String,
+    pub username: String,
+    pub sid: String,
+    pub typ: String,
+    pub exp: i64,
+}
+
 /// 注入到 request extensions 的当前用户
 #[derive(Debug, Clone)]
 pub struct AuthUser {
@@ -69,6 +78,30 @@ pub fn issue_access_token(state: &AppState, user: &AuthUser) -> Result<(String, 
         role: user.role.clone(),
         perms: user.perms.clone(),
         sid: user.sid.clone(),
+        exp,
+    };
+    let token = encode(
+        &Header::default(),
+        &claims,
+        &EncodingKey::from_secret(state.config.jwt_secret.as_bytes()),
+    )
+    .map_err(|_| ApiError::Internal)?;
+    Ok((token, ttl * 60))
+}
+
+pub fn issue_mobile_access_token(
+    state: &AppState,
+    user_id: &str,
+    username: &str,
+    sid: &str,
+) -> Result<(String, i64), ApiError> {
+    let ttl = state.config.access_ttl_minutes;
+    let exp = (Utc::now() + Duration::minutes(ttl)).timestamp();
+    let claims = MobileClaims {
+        sub: user_id.to_owned(),
+        username: username.to_owned(),
+        sid: sid.to_owned(),
+        typ: "mobile".to_owned(),
         exp,
     };
     let token = encode(
