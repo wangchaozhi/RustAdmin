@@ -2,11 +2,12 @@ mod announce_routes;
 mod auth_routes;
 mod export_routes;
 mod misc_routes;
+mod mobile_convert_routes;
 mod mobile_routes;
 mod role_routes;
 mod user_routes;
 
-use axum::{middleware, routing::{get, post, put, delete}, Router};
+use axum::{extract::DefaultBodyLimit, middleware, routing::{get, post, put, delete}, Router};
 
 use crate::{auth::auth_middleware, state::AppState};
 
@@ -15,7 +16,12 @@ pub fn router(state: AppState) -> Router {
         .route("/api/health", get(misc_routes::health))
         .route("/api/auth/login", post(auth_routes::login))
         .route("/api/auth/refresh", post(auth_routes::refresh))
-        .route("/api/mobile/login", post(mobile_routes::login));
+        .route("/api/mobile/login", post(mobile_routes::login))
+        .route(
+            "/api/mobile/video-to-audio",
+            post(mobile_convert_routes::video_to_audio)
+                .layer(DefaultBodyLimit::max(512 * 1024 * 1024)),
+        );
 
     let protected = Router::new()
         .route("/api/auth/me", get(auth_routes::me))

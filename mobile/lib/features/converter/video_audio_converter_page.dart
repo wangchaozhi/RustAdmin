@@ -1,4 +1,5 @@
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'video_audio_converter_models.dart';
@@ -14,7 +15,7 @@ class VideoAudioConverterPage extends StatefulWidget {
 
 class _VideoAudioConverterPageState extends State<VideoAudioConverterPage> {
   AudioOutputFormat _format = AudioOutputFormat.m4a;
-  String? _inputPath;
+  PlatformFile? _selectedFile;
   String? _inputName;
   String? _outputPath;
   bool _converting = false;
@@ -23,26 +24,30 @@ class _VideoAudioConverterPageState extends State<VideoAudioConverterPage> {
     final result = await FilePicker.pickFiles(
       type: FileType.video,
       allowMultiple: false,
-      withData: false,
+      withData: kIsWeb,
     );
     if (result == null || result.files.isEmpty) return;
 
     final file = result.files.single;
-    if (file.path == null || file.path!.isEmpty) {
+    if (!kIsWeb && (file.path == null || file.path!.isEmpty)) {
       _showMessage('当前平台无法读取视频文件路径');
+      return;
+    }
+    if (kIsWeb && (file.bytes == null || file.bytes!.isEmpty)) {
+      _showMessage('当前浏览器无法读取视频文件内容');
       return;
     }
 
     setState(() {
-      _inputPath = file.path;
+      _selectedFile = file;
       _inputName = file.name;
       _outputPath = null;
     });
   }
 
   Future<void> _convert() async {
-    final inputPath = _inputPath;
-    if (inputPath == null || inputPath.isEmpty) {
+    final selectedFile = _selectedFile;
+    if (selectedFile == null) {
       _showMessage('请先选择视频文件');
       return;
     }
@@ -54,7 +59,7 @@ class _VideoAudioConverterPageState extends State<VideoAudioConverterPage> {
     setState(() => _converting = true);
     try {
       final result = await convertVideoToAudio(
-        inputPath: inputPath,
+        file: selectedFile,
         format: _format,
       );
       if (!mounted) return;
