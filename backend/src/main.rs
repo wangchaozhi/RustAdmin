@@ -1,7 +1,9 @@
 mod auth;
 mod config;
+mod csv;
 mod error;
 mod models;
+mod perms;
 mod repo;
 mod routes;
 mod state;

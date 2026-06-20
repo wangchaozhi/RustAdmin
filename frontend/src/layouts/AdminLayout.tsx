@@ -1,22 +1,48 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../api/client";
+import type { AnnouncementFeed } from "../api/types";
 import { useAuth } from "../store/auth";
 
-const NAV = [
+interface NavItem {
+  to: string;
+  label: string;
+  icon: string;
+  perm?: string;
+  end?: boolean;
+}
+
+const NAV: NavItem[] = [
   { to: "/", label: "概览", icon: "◧", perm: "dashboard.read", end: true },
   { to: "/users", label: "用户", icon: "◫", perm: "users.read" },
   { to: "/roles", label: "角色", icon: "◨", perm: "users.read" },
   { to: "/audit", label: "审计", icon: "≡", perm: "audit.read" },
+  { to: "/announcements", label: "公告", icon: "❖" },
+  { to: "/profile", label: "我的", icon: "◓" },
 ];
 
 export default function AdminLayout() {
   const { user, can, logout } = useAuth();
   const navigate = useNavigate();
-  const items = NAV.filter((n) => can(n.perm));
+  const items = NAV.filter((n) => !n.perm || can(n.perm));
+
+  const { data: feed } = useQuery({
+    queryKey: ["announcements", "feed"],
+    queryFn: () => api<AnnouncementFeed>("/api/announcements"),
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  });
+  const unread = feed?.unread ?? 0;
 
   const onLogout = async () => {
     await logout();
     navigate("/login");
   };
+
+  const badge = (to: string) =>
+    to === "/announcements" && unread > 0
+      ? <span className="nav-badge">{unread > 99 ? "99+" : unread}</span>
+      : null;
 
   return (
     <div className="shell">
@@ -32,6 +58,7 @@ export default function AdminLayout() {
               className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}>
               <span className="nav-icon" aria-hidden>{n.icon}</span>
               {n.label}
+              {badge(n.to)}
             </NavLink>
           ))}
         </nav>
@@ -65,7 +92,7 @@ export default function AdminLayout() {
         {items.map((n) => (
           <NavLink key={n.to} to={n.to} end={n.end}
             className={({ isActive }) => `tab-link ${isActive ? "active" : ""}`}>
-            <span className="nav-icon" aria-hidden>{n.icon}</span>
+            <span className="nav-icon" aria-hidden>{n.icon}{badge(n.to)}</span>
             <span>{n.label}</span>
           </NavLink>
         ))}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api } from "../api/client";
+import { api, download } from "../api/client";
 import type { Page, Role, User } from "../api/types";
 import { Empty, Modal, Pagination, RoleBadge, StatusBadge, formatTime } from "../components/ui";
 import { useAuth } from "../store/auth";
@@ -98,6 +98,9 @@ export default function Users() {
           onKeyDown={(e) => { if (e.key === "Enter") { setSearch(q); setPage(1); } }}
         />
         <button onClick={() => { setSearch(q); setPage(1); }}>搜索</button>
+        <button onClick={() => download(`/api/export/users?q=${encodeURIComponent(search)}`, "users.csv")}>
+          导出 CSV
+        </button>
       </div>
 
       {isLoading ? (

@@ -80,3 +80,30 @@ export async function api<T>(
 
   return res.json() as Promise<T>;
 }
+
+/** 带鉴权地下载文件(如 CSV 导出),触发浏览器另存为 */
+export async function download(path: string, filename: string): Promise<void> {
+  const authHeaders = (): Record<string, string> =>
+    tokenStore.access ? { Authorization: `Bearer ${tokenStore.access}` } : {};
+
+  let res = await fetch(path, { headers: authHeaders() });
+  if (res.status === 401 && tokenStore.refresh) {
+    const ok = await tryRefresh();
+    if (!ok) {
+      window.dispatchEvent(new Event("harbor:logout"));
+      throw new ApiError(401, "登录已过期,请重新登录");
+    }
+    res = await fetch(path, { headers: authHeaders() });
+  }
+  if (!res.ok) throw new ApiError(res.status, `导出失败 (${res.status})`);
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}

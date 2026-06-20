@@ -147,6 +147,60 @@ pub async fn update(state: &AppState, id: &str, req: UpdateUserReq) -> ApiResult
     find_by_id(state, id).await
 }
 
+/// 普通用户更新自己的资料(仅姓名与邮箱)
+pub async fn update_self(
+    state: &AppState,
+    id: &str,
+    display_name: Option<String>,
+    email: Option<String>,
+) -> ApiResult<User> {
+    let mut user = find_by_id(state, id).await?;
+    if let Some(email) = email {
+        if !email.contains('@') {
+            return Err(ApiError::BadRequest("邮箱格式不正确".into()));
+        }
+        user.email = email;
+    }
+    if let Some(dn) = display_name {
+        user.display_name = dn;
+    }
+    sqlx::query("UPDATE users SET email=?, display_name=?, updated_at=? WHERE id=?")
+        .bind(&user.email)
+        .bind(&user.display_name)
+        .bind(now_iso())
+        .bind(id)
+        .execute(&state.db)
+        .await
+        .map_err(|e| match e {
+            sqlx::Error::Database(ref d) if d.is_unique_violation() => ApiError::Conflict("邮箱已被占用".into()),
+            other => ApiError::Db(other),
+        })?;
+    find_by_id(state, id).await
+}
+
+pub async fn set_password(state: &AppState, id: &str, new_password: &str) -> ApiResult<()> {
+    let hash = auth::hash_password(new_password)?;
+    sqlx::query("UPDATE users SET password_hash=?, updated_at=? WHERE id=?")
+        .bind(hash)
+        .bind(now_iso())
+        .bind(id)
+        .execute(&state.db)
+        .await?;
+    Ok(())
+}
+
+/// 导出匹配关键词的全部用户(用于 CSV),上限保护
+pub async fn export(state: &AppState, q: Option<String>) -> ApiResult<Vec<User>> {
+    let like = format!("%{}%", q.unwrap_or_default());
+    Ok(sqlx::query_as::<_, User>(
+        "SELECT * FROM users WHERE username LIKE ? OR email LIKE ? OR display_name LIKE ?
+         ORDER BY created_at DESC LIMIT 50000",
+    )
+    .bind(&like).bind(&like).bind(&like)
+    .fetch_all(&state.db)
+    .await?)
+}
+
 pub async fn delete(state: &AppState, id: &str) -> ApiResult<()> {
     let res = sqlx::query("DELETE FROM users WHERE id = ?")
         .bind(id)

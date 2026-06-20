@@ -21,6 +21,8 @@ pub struct Claims {
     pub username: String,
     pub role: String,
     pub perms: Vec<String>,
+    #[serde(default)] // 兼容升级前签发、不含 sid 的旧令牌
+    pub sid: String,   // 当前会话(refresh_tokens.id)
     pub exp: i64,
 }
 
@@ -31,6 +33,7 @@ pub struct AuthUser {
     pub username: String,
     pub role: String,
     pub perms: Vec<String>,
+    pub sid: String,
 }
 
 impl AuthUser {
@@ -65,6 +68,7 @@ pub fn issue_access_token(state: &AppState, user: &AuthUser) -> Result<(String, 
         username: user.username.clone(),
         role: user.role.clone(),
         perms: user.perms.clone(),
+        sid: user.sid.clone(),
         exp,
     };
     let token = encode(
@@ -118,6 +122,7 @@ pub async fn auth_middleware(
         username: claims.username,
         role: claims.role,
         perms: claims.perms,
+        sid: claims.sid,
     });
     Ok(next.run(req).await)
 }

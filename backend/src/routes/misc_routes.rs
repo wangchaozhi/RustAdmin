@@ -8,12 +8,20 @@ use crate::{
     auth::AuthUser,
     error::ApiResult,
     models::{AuditLog, Page, PageQuery, RoleOut},
+    perms,
     repo::{self, audit::DashboardStats},
     state::AppState,
 };
 
 pub async fn health() -> Json<Value> {
     Json(json!({ "status": "ok" }))
+}
+
+pub async fn list_permissions(
+    Extension(me): Extension<AuthUser>,
+) -> ApiResult<Json<Vec<perms::PermItem>>> {
+    me.require("roles.read").or_else(|_| me.require("roles.write"))?;
+    Ok(Json(perms::catalog()))
 }
 
 pub async fn dashboard(

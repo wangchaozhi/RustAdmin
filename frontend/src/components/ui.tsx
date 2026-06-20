@@ -52,8 +52,10 @@ export function StatusBadge({ status }: { status: string }) {
   );
 }
 
+const ROLE_LABELS: Record<string, string> = { admin: "管理员", editor: "编辑", viewer: "只读" };
+
 export function RoleBadge({ role }: { role: string }) {
-  const label = role === "admin" ? "管理员" : role === "editor" ? "编辑" : "只读";
+  const label = ROLE_LABELS[role] ?? role;
   return <span className={`badge badge-role badge-role-${role}`}>{label}</span>;
 }
 

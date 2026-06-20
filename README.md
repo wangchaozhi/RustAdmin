@@ -5,8 +5,11 @@ Rust + React 全栈后台管理系统,桌面端与移动端自适应。
 ## 功能
 
 - JWT 双令牌认证(Access 15 分钟 + Refresh 7 天,刷新令牌哈希存储并轮换)
-- RBAC 权限模型:admin / editor / viewer 三角色,接口级权限校验
+- RBAC 权限模型:内置 admin / editor / viewer,并支持自定义角色与权限点勾选,接口级权限校验
 - 用户管理:搜索、分页、新建、编辑、禁用、删除(含自我保护规则)
+- 个人中心:编辑资料、修改密码(校验旧密码,改后吊销全部会话)、登录会话查看与注销
+- 系统公告:分级(通知/重要/紧急)发布与草稿,按用户记录已读,导航未读红点
+- 数据导出:用户列表、审计日志按当前搜索条件一键导出 CSV(带 UTF-8 BOM,Excel 友好)
 - 审计日志:登录与所有写操作自动记录,含 IP
 - 仪表盘:用户统计、近 7 天登录趋势、最近操作流
 - 响应式 UI:≥1024px 侧边栏布局,移动端顶栏 + 底部 Tab,表格自动切换为卡片
@@ -15,23 +18,25 @@ Rust + React 全栈后台管理系统,桌面端与移动端自适应。
 
 ```
 backend/                      Rust (Axum 0.7 + SQLx + SQLite)
-├── migrations/               SQL 迁移,启动时自动执行
+├── migrations/               SQL 迁移,启动时自动执行(0001 初始 / 0002 会话设备 / 0003 公告)
 └── src/
     ├── main.rs               启动:日志、连接池、迁移、CORS、路由
     ├── config.rs             环境变量配置
     ├── error.rs              统一 ApiError → HTTP 响应
     ├── state.rs              AppState(连接池 + 配置)
-    ├── auth.rs               Argon2 哈希、JWT 签发/校验、鉴权中间件、权限检查
+    ├── auth.rs               Argon2 哈希、JWT(含会话 sid)签发/校验、鉴权中间件、权限检查
+    ├── perms.rs              权限点目录(角色编辑器据此渲染与校验)
+    ├── csv.rs                极简 CSV 生成(RFC 4180 转义 + BOM)
     ├── models.rs             实体与请求/响应 DTO
-    ├── repo/                 数据访问层(users / roles / tokens / audit)
-    └── routes/               HTTP 处理器(auth / users / misc)
+    ├── repo/                 数据访问层(users / roles / tokens / audit / announce)
+    └── routes/               HTTP 处理器(auth / users / role / announce / export / misc)
 
 frontend/                     React 18 + TypeScript + Vite
 └── src/
-    ├── api/client.ts         fetch 封装:令牌注入、401 自动刷新重试
-    ├── store/auth.tsx        认证 Context:登录、登出、会话恢复、权限判断
-    ├── layouts/AdminLayout   响应式骨架(侧边栏 / 底部 Tab)
-    ├── pages/                Login · Dashboard · Users · Roles · Audit
+    ├── api/client.ts         fetch 封装:令牌注入、401 自动刷新重试、鉴权下载(CSV)
+    ├── store/auth.tsx        认证 Context:登录、登出、会话恢复、刷新、权限判断
+    ├── layouts/AdminLayout   响应式骨架(侧边栏 / 底部 Tab,公告未读红点)
+    ├── pages/                Login · Dashboard · Users · Roles · Audit · Announcements · Profile
     └── styles.css            设计令牌 + 响应式样式
 ```
 

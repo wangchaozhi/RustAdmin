@@ -56,6 +56,18 @@ pub async fn list(state: &AppState, page: i64, page_size: i64, q: Option<String>
     Ok(Page { items, total, page, page_size })
 }
 
+/// 导出匹配关键词的全部审计日志(用于 CSV),上限保护
+pub async fn export(state: &AppState, q: Option<String>) -> ApiResult<Vec<AuditLog>> {
+    let like = format!("%{}%", q.unwrap_or_default());
+    Ok(sqlx::query_as::<_, AuditLog>(
+        "SELECT * FROM audit_logs WHERE username LIKE ? OR action LIKE ? OR target LIKE ?
+         ORDER BY created_at DESC LIMIT 50000",
+    )
+    .bind(&like).bind(&like).bind(&like)
+    .fetch_all(&state.db)
+    .await?)
+}
+
 #[derive(serde::Serialize)]
 pub struct DashboardStats {
     pub total_users: i64,

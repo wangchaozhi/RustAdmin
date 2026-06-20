@@ -217,6 +217,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 .badge-ok { background: var(--accent-soft); color: var(--accent); }
 .badge-off { background: var(--danger-soft); color: var(--danger); }
+.badge-role { background: #e9eef1; color: var(--ink-soft); }
 .badge-role-admin { background: #ece7f6; color: #5b3fa8; }
 .badge-role-editor { background: #fdf1de; color: var(--amber); }
 .badge-role-viewer { background: #e9eef1; color: var(--ink-soft); }
@@ -305,6 +306,104 @@ ul { margin: 0; padding: 0; list-style: none; }
 
 .boot { display: grid; place-items: center; min-height: 100vh; color: var(--ink-soft); }
 
+/* ============ 角色管理 ============ */
+.role-card-actions { display: flex; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+.tag-builtin {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--ink-soft);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 1px 7px;
+}
+.perm-groups { display: grid; gap: 12px; }
+.perm-group {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+.perm-group legend { font-size: 12px; font-weight: 700; color: var(--ink-soft); padding: 0 4px; }
+.perm-check { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
+.perm-check input { width: auto; }
+.perm-check code { margin-left: auto; font-size: 11px; }
+
+/* ============ 个人中心 ============ */
+.profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+.profile-card .field input:disabled { background: var(--bg); color: var(--ink-soft); }
+.field-inline { display: flex; align-items: center; gap: 10px; }
+.form-ok { color: var(--accent); font-size: 14px; margin: 0; }
+
+.session-list { display: grid; gap: 10px; }
+.session-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px; border: 1px solid var(--line); border-radius: 8px;
+}
+.session-info { min-width: 0; }
+.session-ua { font-weight: 600; display: flex; align-items: center; gap: 8px; word-break: break-all; }
+.tag-current {
+  font-size: 11px; font-weight: 600;
+  color: var(--accent); background: var(--accent-soft);
+  border-radius: 6px; padding: 1px 7px;
+}
+
+/* ============ 公告 ============ */
+.nav-badge {
+  margin-left: auto;
+  min-width: 18px; height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 11px; font-weight: 700;
+  display: inline-grid; place-items: center;
+}
+.tab-link .nav-icon { position: relative; }
+.tab-link .nav-badge {
+  position: absolute; top: -6px; left: 12px; margin: 0;
+}
+
+.textarea {
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  width: 100%;
+  font: inherit;
+  resize: vertical;
+}
+
+.announce-feed { display: grid; gap: 12px; }
+.announce-card { cursor: default; }
+.announce-card.unread { cursor: pointer; border-color: var(--accent); background: #fbfdfc; }
+.announce-head { display: flex; align-items: center; gap: 10px; }
+.announce-head strong { font-size: 15px; }
+.announce-body { margin: 10px 0; white-space: pre-wrap; color: var(--ink); }
+.unread-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); margin-left: auto; }
+
+.level-info { background: var(--accent-soft); color: var(--accent); }
+.level-warning { background: #fdf1de; color: var(--amber); }
+.level-critical { background: var(--danger-soft); color: var(--danger); }
+
+.tag-draft, .tag-current { white-space: nowrap; }
+.tag-draft {
+  font-size: 11px; font-weight: 600;
+  color: var(--ink-soft); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 6px; padding: 1px 7px;
+}
+
+.manage-list { display: grid; gap: 8px; margin-top: 14px; }
+.manage-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+}
+.manage-main { min-width: 0; }
+.manage-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.manage-actions { display: flex; gap: 4px; white-space: nowrap; }
+
 /* 移动端卡片列表默认隐藏 */
 .card-list { display: none; }
 
@@ -352,6 +451,9 @@ ul { margin: 0; padding: 0; list-style: none; }
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
   .dash-grid { grid-template-columns: 1fr; }
   .role-grid { grid-template-columns: 1fr; }
+  .profile-grid { grid-template-columns: 1fr; }
+  .manage-item { flex-direction: column; align-items: stretch; }
+  .manage-actions { justify-content: flex-end; }
 
   /* 表格切换为卡片 */
   .table-card { display: none; }

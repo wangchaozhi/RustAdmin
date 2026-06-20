@@ -8,6 +8,7 @@ interface AuthState {
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  refresh: () => Promise<void>;
   can: (perm: string) => boolean;
 }
 
@@ -55,11 +56,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setPermissions([]);
   }, []);
 
+  const refresh = useCallback(async () => {
+    const me = await api<{ user: User; permissions: string[] }>("/api/auth/me");
+    setUser(me.user);
+    setPermissions(me.permissions);
+  }, []);
+
   const can = useCallback((perm: string) => permissions.includes(perm), [permissions]);
 
   const value = useMemo(
-    () => ({ user, permissions, loading, login, logout, can }),
-    [user, permissions, loading, login, logout, can],
+    () => ({ user, permissions, loading, login, logout, refresh, can }),
+    [user, permissions, loading, login, logout, refresh, can],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -5,3 +5,5 @@ dist/
 .env
 .run/
 .idea/
+*.tsbuildinfo
+*.log

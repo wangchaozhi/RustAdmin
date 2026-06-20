@@ -38,6 +38,32 @@ impl From<Role> for RoleOut {
 }
 
 #[derive(Debug, sqlx::FromRow, Serialize)]
+pub struct Announcement {
+    pub id: String,
+    pub title: String,
+    pub body: String,
+    pub level: String, // info | warning | critical
+    pub published: bool,
+    pub created_by: String,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+/// 面向普通用户的公告(仅已发布),附带当前用户是否已读
+#[derive(Debug, sqlx::FromRow, Serialize)]
+pub struct AnnouncementFeedRow {
+    pub id: String,
+    pub title: String,
+    pub body: String,
+    pub level: String,
+    pub published: bool,
+    pub created_by: String,
+    pub created_at: String,
+    pub updated_at: String,
+    pub read: bool,
+}
+
+#[derive(Debug, sqlx::FromRow, Serialize)]
 pub struct AuditLog {
     pub id: String,
     pub user_id: Option<String>,
@@ -78,6 +104,47 @@ pub struct UpdateUserReq {
     pub role: Option<String>,
     pub status: Option<String>,
     pub password: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CreateRoleReq {
+    pub name: String,
+    pub description: Option<String>,
+    pub permissions: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateRoleReq {
+    pub description: Option<String>,
+    pub permissions: Option<Vec<String>>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateProfileReq {
+    pub display_name: Option<String>,
+    pub email: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ChangePasswordReq {
+    pub current_password: String,
+    pub new_password: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CreateAnnouncementReq {
+    pub title: String,
+    pub body: Option<String>,
+    pub level: Option<String>,
+    pub published: Option<bool>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateAnnouncementReq {
+    pub title: Option<String>,
+    pub body: Option<String>,
+    pub level: Option<String>,
+    pub published: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]

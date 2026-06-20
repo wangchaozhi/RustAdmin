@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "../api/client";
+import { api, download } from "../api/client";
 import type { AuditLog, Page } from "../api/types";
 import { Empty, Pagination, formatTime } from "../components/ui";
 
@@ -24,6 +24,9 @@ export default function Audit() {
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") { setSearch(q); setPage(1); } }} />
         <button onClick={() => { setSearch(q); setPage(1); }}>搜索</button>
+        <button onClick={() => download(`/api/export/audit?q=${encodeURIComponent(search)}`, "audit.csv")}>
+          导出 CSV
+        </button>
       </div>
 
       {isLoading ? (

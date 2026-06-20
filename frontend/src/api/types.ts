@@ -40,6 +40,43 @@ export interface TokenPair {
   expires_in: number;
 }
 
+export interface Permission {
+  key: string;
+  label: string;
+  group: string;
+}
+
+export interface Session {
+  id: string;
+  ip: string;
+  user_agent: string;
+  created_at: string;
+  expires_at: string;
+  current: boolean;
+}
+
+export type AnnouncementLevel = "info" | "warning" | "critical";
+
+export interface Announcement {
+  id: string;
+  title: string;
+  body: string;
+  level: AnnouncementLevel;
+  published: boolean;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AnnouncementFeedItem extends Announcement {
+  read: boolean;
+}
+
+export interface AnnouncementFeed {
+  items: AnnouncementFeedItem[];
+  unread: number;
+}
+
 export interface DayCount {
   day: string;
   count: number;
